@@ -1,0 +1,12 @@
+[
+  { "name": "Google", "link": "https://www.google.com" },
+  { "name": "YouTube", "link": "https://www.youtube.com" },
+  { "name": "AniList", "link": "https://anilist.co/home" },
+  { "name": "MangaDex", "link": "https://mangadex.org/titles/feed" },
+  { "name": "Hianime", "link": "https://hianime.to/home" },
+  { "name": "Steam", "link": "https://store.steampowered.com/" },
+  { "name": "OneDrive", "link": "https://onedrive.live.com/" },
+  { "name": "Twitter", "link": "https://x.com/" },
+  { "name": "ChatGPT", "link": "https://chatgpt.com/" },
+  { "name": "Grok", "link": "https://Grok.com/" }
+]

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Custom New Tab</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-size: cover;
+            background-position: center;
+            flex-direction: column;
+            position: relative; /* Ensure absolute positioning is relative to body */
+        }
+        #clock {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 72px;
+            color: white;
+            text-shadow: 2px 2px 4px #000000;
+        }
+        #audio-controls {
+            position: absolute;
+            top: 120px;
+            right: 20px;
+        }
+        audio {
+            width: 300px; /* Adjust width as needed */
+        }
+        #search-bar {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        #search-bar input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            font-size: 18px;
+            border-radius: 25px;
+            border: none;
+            outline: none;
+            background-color: black;
+            color: white;
+        }
+        #search-bar input[type="submit"] {
+            padding: 10px 20px;
+            font-size: 18px;
+            border-radius: 25px;
+            border: none;
+            outline: none;
+            margin-left: 10px;
+            background-color: black;
+            color: white;
+            cursor: pointer;
+        }
+        #search-bar input[type="submit"]:hover {
+            background-color: #333;
+        }
+        #favorites {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 18px;
+            color: white;
+        }
+        #favorites a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 10px;
+            padding: 5px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+        }
+        #favorites a:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        #theme-menu-button {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            border-radius: 25px;
+            border: none;
+            outline: none;
+            background-color: black;
+            color: white;
+            cursor: pointer;
+        }
+        #theme-menu-button:hover {
+            background-color: #333;
+        }
+        #theme-menu {
+            display: none;
+            position: absolute;
+            bottom: 60px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+        .theme-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            cursor: pointer;
+            color: white;
+        }
+        .theme-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="clock"></div>
+    <div id="audio-controls">
+        <audio id="myAudio" controls loop>
+            <source id="audioSource" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+    <div id="favorites"></div>
+
+    <script>
+        // Fetch favorites from JSON and populate the div
+        fetch('favorites.json')
+            .then(response => response.json())
+            .then(favorites => {
+                const favoritesContainer = document.getElementById('favorites');
+
+                favorites.slice(0, 10).forEach(fav => {
+                    const link = document.createElement('a');
+                    link.href = fav.link;
+                    link.target = "_blank";
+                    link.textContent = fav.name;
+                    favoritesContainer.appendChild(link);
+                });
+            })
+            .catch(err => {
+                console.error('Failed to load favorites:', err);
+            });
+    </script>
+
+    <div id="search-bar">
+        <form action="https://www.google.com/search" method="get">
+            <input type="text" name="q" placeholder="Search Google...">
+            <input type="submit" value="Search">
+        </form>
+    </div>
+    <button id="theme-menu-button">Change Theme</button>
+    <div id="theme-menu"></div>
+    <script>
+        // Function to set the theme
+        function setTheme(themePath) {
+            console.log(`Setting theme: ${themePath}`);
+            const imageUrl = `${themePath}/image.jpg?cacheBuster=${new Date().getTime()}`;
+            console.log(`Setting background image: ${imageUrl}`);
+            
+            // Create a new Image object to check if the image exists
+            const img = new Image();
+            img.onload = function() {
+                console.log(`Image loaded successfully: ${imageUrl}`);
+                document.body.style.backgroundImage = `url(${imageUrl})`;
+            };
+            img.onerror = function() {
+                console.error(`Image failed to load: ${imageUrl}`);
+                // Fallback to a default image or keep the current background
+            };
+            img.src = imageUrl;
+
+            const audioSource = document.getElementById('audioSource');
+            audioSource.src = `${themePath}/music.mp3`;
+            console.log(`Setting audio source: ${audioSource.src}`);
+            
+            const audioElement = document.getElementById('myAudio');
+            audioElement.load();
+
+            // Save selected theme to localStorage
+            localStorage.setItem('selectedTheme', themePath);
+        }
+
+        // Load saved theme on page load
+        function loadSavedTheme() {
+            const savedTheme = localStorage.getItem('selectedTheme');
+            if (savedTheme) {
+                setTheme(savedTheme);
+            } else {
+                // Default theme if no saved theme found
+                setTheme('themes/Enormeeta');
+            }
+        }
+
+        // Default theme on load
+        loadSavedTheme();
+
+        // Clock update function
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            const timeString = `${hours}:${minutes}:${seconds} ${ampm}`;
+            document.getElementById('clock').textContent = timeString;
+        }
+
+        // Update the clock immediately and then every second
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        // Fetch themes from JSON and display menu
+        fetch('themes.json')
+            .then(response => response.json())
+            .then(themes => {
+                const themeMenu = document.getElementById('theme-menu');
+                const themeButton = document.getElementById('theme-menu-button');
+
+                themes.forEach(theme => {
+                    const themeItem = document.createElement('div');
+                    themeItem.className = 'theme-item';
+                    themeItem.innerHTML = `
+                        <img src="${theme.path}/image.jpg?cacheBuster=${new Date().getTime()}" alt="${theme.name}">
+                        <span>${theme.name}</span>
+                    `;
+                    themeItem.addEventListener('click', () => {
+                        console.log(`Theme clicked: ${theme.name}`);
+                        setTheme(theme.path);
+                        themeMenu.style.display = 'none'; // Hide theme menu after selection
+                    });
+                    themeMenu.appendChild(themeItem);
+                });
+
+                // Show theme menu on button click
+                themeButton.addEventListener('click', () => {
+                    if (themeMenu.style.display === 'block') {
+                        themeMenu.style.display = 'none';
+                    } else {
+                        themeMenu.style.display = 'block';
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching themes:', error);
+            });
+
+        // Error handling for audio loading
+        const audioElement = document.getElementById('myAudio');
+        audioElement.addEventListener('error', function(e) {
+            console.error('Error occurred while loading audio:', e.target.error);
+        });
+    </script>
+</body>
+</html>
